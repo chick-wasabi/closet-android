@@ -71,6 +71,7 @@
 | Commit / branch / main / push | A recorded change, a line of work, the primary branch, and sending commits to GitHub. |
 | GitHub Actions / workflow / CI | Automated checks on GitHub, their instruction file, and automatically building/testing changes. |
 | Artifact / retention | A downloadable workflow output and how long GitHub keeps it. |
+| Runner / Node.js / actionlint | The machine executing a workflow, the JavaScript runtime used by workflow actions (not the phone app), and a checker for workflow errors. |
 | YAML | The text format used by GitHub’s workflow file. |
 | Gradle / wrapper | Android’s build tool and the committed launcher that downloads the exact required Gradle version. |
 | JDK / JVM / bytecode | The Java development tools, the machine that runs Java tools/tests, and compiled instructions. |

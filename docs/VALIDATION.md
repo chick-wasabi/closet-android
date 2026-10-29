@@ -34,3 +34,13 @@ Run `./gradlew connectedDebugAndroidTest` with a booted emulator or connected An
 - Wardrobe backup/restore is not implemented. Uninstall/clear data destroys the local collection. Export saves outfit images only.
 - CI debug signing keys are temporary and can differ between workflow runs. Stable update signing is not configured; see README before replacing an installed APK.
 - Device model is confirmed as OnePlus 13R; physical-device testing has not occurred.
+
+## CI setup correction
+
+The original workflow used `android-actions/setup-android@v3` with its default `packages: tools platform-tools`. Its command-line tools version is 12266719 (16.0). Reproducing that exact version's `sdkmanager tools` command locally exits 1 with `Warning: Failed to find package 'tools'`. The action propagates that failure before the Gradle build starts; the missing validation-report artifact warning is a consequence, not the root failure.
+
+The workflow now uses the Android SDK tools already included on the pinned `ubuntu-24.04` runner and explicitly installs `platform-tools`, `platforms;android-36`, and `build-tools;35.0.0`. This supported package request passed using the same SDK manager that reproduced the failure. Checkout, Java setup, Gradle setup, and artifact upload use verified Node 24 action versions. Gradle is limited to two workers, consistent with local validation. Actionlint 1.7.7 reported no workflow errors.
+
+The original remote run logs could not be read because this environment's HTTP policy blocks `api.github.com`. The required domain was saved in the environment configuration draft; it must be saved/applied in environment settings before remote Actions verification is possible. The SDK setup failure was directly reproduced locally; it is not presented as an observation of the remote job logs. The new GitHub run still requires remote confirmation.
+
+After the CI correction, `./gradlew --no-daemon --max-workers=2 clean testDebugUnitTest lintDebug assembleDebug` passed with all 59 tasks executed. All 9 JVM tests passed (0 failed/skipped), lint had 0 errors, and the debug APK was generated.
