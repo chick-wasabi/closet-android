@@ -97,11 +97,11 @@ class ImageStore(private val context: Context) {
         require(right >= left) { "An item is entirely transparent. Restore it in the cutout editor." }
         return Bitmap.createBitmap(bitmap, left, top, right - left + 1, bottom - top + 1)
     }
-    fun share(path: String) {
+    suspend fun share(path: String) {
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }
         dir.listFiles()?.filter { System.currentTimeMillis() - it.lastModified() > 86400000 }?.forEach { it.delete() }
         val file = File(dir, "Closet-${UUID.randomUUID()}.png")
-        File(path).copyTo(file)
+        withContext(Dispatchers.IO) { File(path).copyTo(file) }
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
         context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
             type = "image/png"; putExtra(Intent.EXTRA_STREAM, uri)
