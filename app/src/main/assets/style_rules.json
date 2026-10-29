@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "neutralColors": ["black", "white", "cream", "gray", "navy", "brown", "neutral"],
+  "colorPairs": [["blue", "brown"], ["green", "cream"], ["pink", "gray"], ["red", "navy"], ["purple", "cream"], ["yellow", "blue"]],
+  "weights": {"color": 3, "formality": 4, "season": 5},
+  "allowAdjacentFormality": true,
+  "optional": {"hatProbability": 0.4, "jacketProbability": 0.5},
+  "stackOrder": ["hat", "top", "jacket", "bottom", "shoes"]
+}
