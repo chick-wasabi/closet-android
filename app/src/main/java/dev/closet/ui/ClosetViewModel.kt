@@ -129,10 +129,13 @@ class ClosetViewModel(app: Application) : AndroidViewModel(app) {
         }
         messages.send(if (makeFavorite) "Saved to favorites" else "Outfit saved")
     }
-    fun toggleFavorite(outfit: SavedOutfit) = job("Updating favorite") { dao.putOutfit(outfit.copy(favorite = !outfit.favorite)) }
+    fun toggleFavorite(outfit: SavedOutfit) = job("Updating favorite") {
+        dao.putOutfit(outfit.copy(favorite = !outfit.favorite))
+        if (currentSavedId == outfit.id) favorite = !outfit.favorite
+    }
     fun deleteOutfit(outfit: SavedOutfit) = job("Deleting outfit") {
         withContext(Dispatchers.IO) { dao.deleteOutfit(outfit); File(outfit.imagePath).delete() }
-        if(currentSavedId == outfit.id) currentSavedId = null
+        if(currentSavedId == outfit.id) { currentSavedId = null; favorite = false }
     }
     fun export(outfit: SavedOutfit) = job("Exporting PNG") { withContext(Dispatchers.IO) { images.export(outfit.imagePath) }; messages.send("Saved in Pictures/Closet") }
     fun share(outfit: SavedOutfit) = job("Preparing share") { images.share(outfit.imagePath) }

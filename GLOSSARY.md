@@ -77,6 +77,7 @@
 | Android SDK / AGP | Android’s development tools and the Android Gradle Plugin connecting them to Gradle. |
 | minSdk / targetSdk / compileSdk | Oldest supported Android version, version whose behavior the app opts into, and version used to compile. |
 | Dependency / Maven / BOM | A library used by the app, a library repository format, and a coordinated list of library versions. |
+| KSP | Kotlin Symbol Processing, a newer way to generate supporting code; Room can use it as a future alternative to kapt. |
 | kapt / annotation processor | A compiler helper that generates Room’s database implementation from declarations. |
 | TLS / CA / checksum | Secure download connections, trusted certificate authorities, and a digest used to verify downloaded bytes. |
 | Proxy / environment variable | The cloud machine’s network gateway and a setting supplied to a command. No credentials belong in committed files. |

@@ -15,7 +15,7 @@
 
 Four instrumentation tests are included: navigation/add entry points; brush + item metadata save; Room persistence across database reopening; transparent stacked PNG dimensions/pixel order.
 
-A Google APIs Android 35 software emulator was started at **1264 × 2780, density 450**, matching the OnePlus 13R screen size/aspect ratio. This host has no `/dev/kvm`, so it cannot accelerate Android emulation. The first device-test attempt encountered an unresponsive property fetch during the emulator’s first boot. Device-test execution and visual inspection are not yet confirmed; this does not count as a pass.
+A Google APIs Android 35 software emulator was started at **1264 × 2780, density 450**, matching the OnePlus 13R screen size/aspect ratio. This host has no `/dev/kvm`, so it cannot accelerate Android emulation. The first device-test attempt encountered an unresponsive property fetch during the emulator’s first boot. A direct ADB install attempt then failed inside Android StorageManagerService because PackageManagerInternal was still uninitialized; Closet never installed or launched. **Zero app device tests executed.** This is an emulator startup limitation, not an observed Closet crash. Visual inspection remains unverified. The emulator was stopped after these attempts.
 
 Run `./gradlew connectedDebugAndroidTest` with a booted emulator or connected Android phone. Tests create and clean up synthetic test records/images; use a test installation rather than a populated personal wardrobe.
 
@@ -25,7 +25,7 @@ Run `./gradlew connectedDebugAndroidTest` with a booted emulator or connected An
 - Initial Google Play services model provisioning, cutout quality on real garments, and fallback with airplane mode / missing model. No successful ML segmentation on real clothing is claimed from a build alone.
 - Brush erase/restore/undo, rotate while editing, large font settings, keyboard form access, dark mode, and landscape.
 - Shuffle, manual swaps, saving/favorites, delete confirmations, app restart, offline operation, gallery export, and share targets installed on your phone.
-- GitHub Actions execution/artifact availability after push. Local build success is verified separately; GitHub API access is unavailable from this task.
+- GitHub Actions execution/artifact availability: implementation commits were successfully pushed to main after switching unpublished commit authors to GitHub’s no-reply address to satisfy email privacy protection. Local build success is verified separately; GitHub API access is unavailable from this task, so no Actions run success is claimed.
 
 ## Current scope limits
 
