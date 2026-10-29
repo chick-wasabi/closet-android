@@ -44,7 +44,7 @@ export ANDROID_HOME=/path/to/android-sdk
 ./gradlew connectedDebugAndroidTest
 ```
 
-The APK appears at `app/build/outputs/apk/debug/app-debug.apk`. Unit-test reports are under `app/build/reports/tests/`; lint reports under `app/build/reports/`. CI uploads both APK and validation reports. The workflow pins Ubuntu 24.04 and explicitly installs SDK 36 / Build Tools 35.0.0 using the runner’s SDK manager; it avoids the removed legacy `tools` SDK package. Unit tests exercise outfit completeness, filters, color scoring, ordering, and editable rules. Device tests cover navigation, persistence, and stacked PNG pixel/alpha correctness. See [validation notes](docs/VALIDATION.md) for what was actually executed and what still needs a real phone.
+The APK appears at `app/build/outputs/apk/debug/app-debug.apk`. Unit-test reports are under `app/build/reports/tests/`; lint reports under `app/build/reports/`. CI uploads both APK and validation reports. The workflow pins Ubuntu 24.04 and explicitly installs SDK 36 / Build Tools 35.0.0 using an explicit Android setup action that installs the SDK manager and adds it to PATH; it avoids the removed legacy `tools` SDK package. Unit tests exercise outfit completeness, filters, color scoring, ordering, and editable rules. Device tests cover navigation, persistence, and stacked PNG pixel/alpha correctness. See [validation notes](docs/VALIDATION.md) for what was actually executed and what still needs a real phone.
 
 ## Project map
 

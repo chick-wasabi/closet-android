@@ -15,10 +15,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      # Hosted Ubuntu includes sdkmanager and accepted Android SDK licenses.
-      # setup-android@v3 defaults to the removed "tools" package and exits early.
-      - name: Install required Android SDK packages
-        run: sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;35.0.0"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '12266719'
+          # Override the action's obsolete "tools platform-tools" default.
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v5
       - name: Test, lint, and build
         run: ./gradlew --no-daemon --max-workers=2 testDebugUnitTest lintDebug assembleDebug
