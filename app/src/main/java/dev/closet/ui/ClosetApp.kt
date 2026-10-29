@@ -267,7 +267,7 @@ fun Saved(outfits: List<SavedOutfit>, vm: ClosetViewModel) {
         AlertDialog(onDismissRequest = { selected = null }, title = { Text(outfit.name) }, text = {
             Column {
                 AsyncImage(File(outfit.imagePath), outfit.name, Modifier.fillMaxWidth().height(300.dp), contentScale = ContentScale.Fit)
-                Row { TextButton(onClick = { vm.share(outfit) }) { Text("Share PNG") }; TextButton(onClick = { export(outfit) }) { Text("Save to gallery") } }
+                Column { TextButton(onClick = { vm.share(outfit) }) { Text("Share PNG") }; TextButton(onClick = { export(outfit) }) { Text("Save to gallery") } }
                 TextButton(onClick = { selected = null; deleting = outfit }) { Text("Delete outfit", color = MaterialTheme.colorScheme.error) }
             }
         }, confirmButton = { TextButton(onClick = { selected = null }) { Text("Done") } })

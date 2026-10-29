@@ -44,6 +44,7 @@ class OutfitEngineTest {
         val result = OutfitEngine(rules, Random(1)).generate(basics + piece("h", "hat") + piece("j", "jacket"))
         assertEquals(listOf("hat", "top", "jacket", "bottom", "shoes"), result.map { it.category })
     }
+    @Test(expected = IllegalArgumentException::class) fun invalidProbabilitiesAreRejected() { StyleRules(json.replace("0.4", "1.5")) }
     @Test fun colorPairMatchingIsSymmetric() {
         val a = piece("a", "top", "blue"); val b = piece("b", "bottom", "brown")
         assertEquals(engine.score(a, b), engine.score(b, a))

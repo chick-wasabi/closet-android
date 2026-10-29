@@ -29,7 +29,7 @@ class ClosetViewModel(app: Application) : AndroidViewModel(app) {
     val images = ImageStore(app)
     val items = dao.observeItems().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val outfits = dao.observeOutfits().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    private val engine = OutfitEngine(StyleRules(app.assets.open("style_rules.json").bufferedReader().use { it.readText() }))
+    private val engine = runCatching { OutfitEngine(StyleRules(app.assets.open("style_rules.json").bufferedReader().use { it.readText() })) }
     val messages = Channel<String>(Channel.BUFFERED)
     var busy by mutableStateOf(false); private set
     var progress by mutableStateOf(""); private set
@@ -107,7 +107,8 @@ class ClosetViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
     fun shuffle(season: String, formality: String) = job("Finding your next outfit") {
-        val selection = engine.generate(items.value, season, formality)
+        val generator = engine.getOrElse { error("Style rules could not be loaded. Check assets/style_rules.json and rebuild.") }
+        val selection = generator.generate(items.value, season, formality)
         val bitmap = withContext(Dispatchers.Default) { images.render(selection) }
         current = selection; preview = bitmap; currentSavedId = null; favorite = false
     }

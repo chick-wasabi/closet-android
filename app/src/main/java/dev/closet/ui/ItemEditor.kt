@@ -22,6 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
@@ -62,7 +63,7 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                 Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                     val currentRestore by rememberUpdatedState(restore)
                     val currentBrushSize by rememberUpdatedState(brushSize)
-                    Canvas(Modifier.width(drawWidth).aspectRatio(ratio)
+                    Canvas(Modifier.width(drawWidth).aspectRatio(ratio).testTag("cutoutCanvas")
                         .pointerInput(brush, bitmap) {
                             if(!brush) return@pointerInput
                             awaitEachGesture {

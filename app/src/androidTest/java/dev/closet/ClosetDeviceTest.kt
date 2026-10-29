@@ -35,6 +35,36 @@ class ClosetDeviceTest {
         compose.onNodeWithText("On repeat").assertIsDisplayed()
     }
 
+    @Test fun cutoutBrushAndMetadataSaveToCloset() {
+        lateinit var vm: dev.closet.ui.ClosetViewModel
+        val store = ImageStore(ApplicationProvider.getApplicationContext())
+        val bitmap = Bitmap.createBitmap(120, 160, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLUE) }
+        val original = store.write(bitmap)
+        val cutout = store.write(bitmap)
+        val id = "device-test-${System.nanoTime()}"
+        compose.runOnIdle {
+            vm = androidx.lifecycle.ViewModelProvider(compose.activity)[dev.closet.ui.ClosetViewModel::class.java]
+            vm.edit(ClothingItem(id, imagePath = cutout, originalPath = original))
+        }
+        try {
+            compose.waitUntil(15000) { vm.draft != null && !vm.busy }
+            compose.onNodeWithText("Name (optional)").performScrollTo().performTextInput("Test blue top")
+            compose.onNodeWithText("Brush", substring = false).performScrollTo().performClick()
+            compose.onNodeWithTag("cutoutCanvas").performScrollTo().performTouchInput {
+                down(center); moveTo(center + androidx.compose.ui.geometry.Offset(20f, 20f)); up()
+            }
+            compose.onNodeWithText("Undo").performScrollTo().performClick()
+            compose.onNodeWithText("Save piece").performScrollTo().performClick()
+            compose.waitUntil(15000) { vm.items.value.any { it.id == id } && !vm.busy }
+            compose.onNodeWithText("Test blue top").assertIsDisplayed()
+            assertEquals("top", vm.items.value.first { it.id == id }.category)
+        } finally {
+            compose.runOnIdle { vm.items.value.firstOrNull { it.id == id }?.let(vm::delete) }
+            compose.waitUntil(15000) { !vm.busy }
+            File(original).delete(); File(cutout).delete()
+        }
+    }
+
     @Test fun roomPersistsItemsAndOutfitSnapshots() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val name = "test-${System.nanoTime()}.db"

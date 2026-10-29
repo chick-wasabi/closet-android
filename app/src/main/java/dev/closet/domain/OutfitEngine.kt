@@ -18,7 +18,7 @@ class StyleRules(json: String) {
     val adjacent = root.getBoolean("allowAdjacentFormality")
     val hatProbability = root.getJSONObject("optional").getDouble("hatProbability")
     val jacketProbability = root.getJSONObject("optional").getDouble("jacketProbability")
-    init { require(root.getInt("version") == 1); require(root.getJSONArray("stackOrder").toString() == "[\"hat\",\"top\",\"jacket\",\"bottom\",\"shoes\"]") }
+    init { require(hatProbability in 0.0..1.0 && jacketProbability in 0.0..1.0); require(listOf(colorWeight, formalityWeight, seasonWeight).all { it >= 0 }); require(root.getInt("version") == 1); require(root.getJSONArray("stackOrder").toString() == "[\"hat\",\"top\",\"jacket\",\"bottom\",\"shoes\"]") }
 }
 
 class OutfitEngine(private val rules: StyleRules, private val random: Random = Random.Default) {
