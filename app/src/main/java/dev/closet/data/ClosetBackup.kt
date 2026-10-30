@@ -58,6 +58,7 @@ class ClosetBackup(private val context: Context,private val db: ClosetDatabase) 
             for((name,file) in files.filterKeys{it!="database.json"}) {
                 val bounds=BitmapFactory.Options().apply{inJustDecodeBounds=true};BitmapFactory.decodeFile(file.path,bounds)
                 require(bounds.outWidth in 1..4096 && bounds.outHeight in 1..4096 && bounds.outMimeType=="image/png"){"Invalid backup image."}
+                requireNotNull(BitmapFactory.decodeFile(file.path)) { "Backup photo is damaged." }.recycle()
                 val dest=File(target,"${UUID.randomUUID()}.png");file.copyTo(dest);installed+=dest;mapped[name]=dest.absolutePath
             }
             fun image(j: JSONObject,key: String)=requireNotNull(mapped[j.getString(key)]){"Backup is missing a photo."}
