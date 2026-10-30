@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "ui_source_sha256": "805e7474007cf1e7c4bcaf590ad785ee3adb65c1a8d277c56ee7f344909dae85",
+  "screenshots": [
+    "closet.png",
+    "outfits.png",
+    "saved.png",
+    "dark-mode.png",
+    "editor.png"
+  ],
+  "sample_data": "Illustrated example wardrobe, rendered with the actual app components."
+}

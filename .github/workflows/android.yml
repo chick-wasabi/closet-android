@@ -23,9 +23,25 @@ jobs:
           packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v5
-      - name: Test, lint, and build
-        run: ./gradlew --no-daemon --max-workers=2 testDebugUnitTest lintDebug assembleDebug
+      - name: Check signing policy
+        run: python3 -m unittest discover -s scripts/tests
+      - name: Test and lint
+        run: ./gradlew --no-daemon --max-workers=2 testDebugUnitTest lintDebug
+      - name: Check public screenshot freshness
+        run: python3 scripts/update_screenshots.py --check
+      - name: Restore permanent signing identity
+        if: github.event_name != 'pull_request'
+        env:
+          CLOSET_SIGNING_BUNDLE: ${{ secrets.CLOSET_SIGNING_BUNDLE }}
+        run: python3 scripts/signing.py restore --output-dir "$RUNNER_TEMP/closet-signing"
+      - name: Build signed APK
+        if: github.event_name != 'pull_request'
+        run: ./gradlew --no-daemon --max-workers=2 assembleDebug
+      - name: Verify APK signing certificate
+        if: github.event_name != 'pull_request'
+        run: python3 scripts/signing.py verify-apks app/build/outputs/apk/debug/app-debug.apk
       - uses: actions/upload-artifact@v6
+        if: github.event_name != 'pull_request'
         with:
           name: Closet-debug
           path: app/build/outputs/apk/debug/app-debug.apk

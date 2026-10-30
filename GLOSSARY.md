@@ -7,7 +7,7 @@
 | Offline / on-device | Works on the phone without sending clothing photos to a server. ML Kit may first need its model delivered by Google Play services. |
 | Native Android | An app written for Android itself, rather than a website inside an app. |
 | APK | The installation file you open on Android. |
-| Debug build | A development version with debugging enabled and a testing signature. |
+| Debug build | A development version with debugging enabled. Distributed Closet builds use the permanent app identity, including debug builds. |
 | Signing key / signature | The identity Android checks before allowing one APK to update another. A different signature generally requires uninstalling first. |
 | Private app storage | Files only this app can normally access; uninstalling deletes them. |
 | Database | Structured storage for item details and saved looks. |
@@ -63,16 +63,21 @@
 | Backup | A separate copy for recovery. Closet disables automatic app backup and currently has no full wardrobe backup/restore feature. |
 | Accessibility / semantics | Labels, readable scaling, and screen information that help assistive tools and users. |
 
-## The lookbook design
+## Interface and update safety
 
 | Term | In plain words |
 | --- | --- |
-| Condensed type / masthead | Narrow display letters and a large page heading, used to give Closet its fashion-poster character. |
-| Contact sheet / registration grid | A neatly arranged set of image frames and fine guide lines behind cutouts. These are visual treatments, not extra wardrobe data. |
-| Design token / color role | A shared size, font, or color choice used consistently across screens. A color role identifies what the color does, such as text or a selected button. |
-| Robolectric / native graphics | An Android simulation running on the development computer, with Android's drawing code used for realistic component rendering. It is not a physical phone. |
-| Roborazzi / render check | A tool that captures Android UI images for review. Closet records screenshots; it does not yet compare them against approved reference images. |
-| Fixture | Synthetic test data, such as the drawn shirt in review screenshots. It is not shipped as a real wardrobe item. |
+| Bundled font / Nunito | A font included inside the APK so rounded typography does not need a download. System font-size settings still apply. |
+| Font scale / responsive layout | The text-size preference selected on the phone and a layout that rearranges itself to fit the available space. |
+| Crossfade / spring / reduced motion | A short transition between screens, gently settling movement, and the phone setting that reduces or disables animation. |
+| Robolectric / Roborazzi | Tools that render actual Android components on the development computer for review; these are not physical-phone screenshots. |
+| Fixture | Illustrated example clothes used only in tests and documentation, not inserted into a user's wardrobe. |
+| Permanent signing identity | The private key kept for every update of one app. A different key normally cannot update the installed copy. |
+| Keystore / alias / signing bundle | A protected key file, the key's name within it, and a private backup file containing the key plus the credentials needed to use it. Keep the bundle in secret storage. |
+| Certificate fingerprint / pin | A public digest identifying the signing certificate; the build checks it to reject accidental key changes. |
+| versionCode / application ID | Android's numeric app-version identifier and its permanent package identity. Updates must preserve the identity and avoid a lower versionCode. |
+| Repository secret | An encrypted value stored in GitHub settings and supplied only to authorized workflow jobs. |
+| Screenshot freshness check | A source fingerprint that makes CI reject documentation images left over from an older UI. |
 
 ## Building and testing
 
