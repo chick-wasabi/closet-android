@@ -5,3 +5,8 @@ local.properties
 *.jks
 *.keystore
 .idea/
+*.p12
+*signing-bundle*.json
+*signing-config*.json
+__pycache__/
+signing.json

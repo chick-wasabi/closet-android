@@ -1,9 +1,14 @@
+import groovy.json.JsonSlurper
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.kapt")
 }
+val signingFile = providers.environmentVariable("CLOSET_SIGNING_CONFIG").orNull?.let(::File)
+val permanentSigning = signingFile?.takeIf { it.isFile }?.let { JsonSlurper().parse(it) as Map<*, *> }
+
 android {
     namespace = "dev.closet"
     compileSdk = 36
@@ -11,9 +16,21 @@ android {
         applicationId = "dev.closet.personal"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        if (permanentSigning != null) create("permanent") {
+            storeFile = file(permanentSigning["store_file"] as String)
+            storePassword = permanentSigning["password"] as String
+            keyAlias = permanentSigning["alias"] as String
+            keyPassword = permanentSigning["password"] as String
+        }
+    }
+    buildTypes {
+        getByName("debug") { signingConfig = signingConfigs.findByName("permanent") }
+        getByName("release") { signingConfig = signingConfigs.findByName("permanent") }
     }
     sourceSets.getByName("test").resources.srcDir("src/main/assets")
     buildFeatures { compose = true }
@@ -59,4 +76,12 @@ dependencies {
     testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.50.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20250517")
+}
+
+// Packaging must never fall back to a generated debug key or an unsigned APK.
+val verifySigningIdentity by tasks.registering(Exec::class) {
+    commandLine("python3", rootProject.file("scripts/signing.py"), "verify")
+}
+tasks.matching { it.name in setOf("packageDebug", "packageRelease", "signDebugBundle", "signReleaseBundle") }.configureEach {
+    dependsOn(verifySigningIdentity)
 }
