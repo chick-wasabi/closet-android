@@ -21,18 +21,18 @@ class ClosetDeviceTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
     @Test fun navigationAndAddEntryPointsWork() {
-        compose.onNodeWithText("Add piece").performClick()
+        compose.onNodeWithText("Add clothes").performClick()
         compose.onNodeWithText("Choose photos").assertIsDisplayed()
         compose.onNodeWithText("Take photo").assertIsDisplayed()
-        compose.onNodeWithText("A new piece").assertIsDisplayed()
+        compose.onNodeWithText("Add to your closet").assertIsDisplayed()
         // Close the dialog with Back, then verify both secondary screens.
         androidx.test.espresso.Espresso.pressBack()
-        compose.onNodeWithText("Style", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("STUDIO").assertIsDisplayed()
+        compose.onNodeWithText("Outfits", useUnmergedTree = true).performClick()
+        compose.onNodeWithTag("screen-title").assertTextEquals("Outfits")
         compose.onNodeWithText("Shuffle").performClick()
         compose.onNodeWithText("Add at least one top, bottom, and pair of shoes matching these filters.").assertIsDisplayed()
         compose.onNodeWithText("Saved", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("LOOKBOOK").assertIsDisplayed()
+        compose.onNodeWithTag("screen-title").assertTextEquals("Saved")
     }
 
     @Test fun cutoutBrushAndMetadataSaveToCloset() {
@@ -54,7 +54,7 @@ class ClosetDeviceTest {
                 down(center); moveTo(center + androidx.compose.ui.geometry.Offset(20f, 20f)); up()
             }
             compose.onNodeWithText("Undo").performScrollTo().performClick()
-            compose.onNodeWithText("Save piece").performScrollTo().performClick()
+            compose.onNodeWithText("Save").performScrollTo().performClick()
             compose.waitUntil(15000) { vm.items.value.any { it.id == id } && !vm.busy }
             compose.onNodeWithText("Test blue top").assertIsDisplayed()
             assertEquals("top", vm.items.value.first { it.id == id }.category)

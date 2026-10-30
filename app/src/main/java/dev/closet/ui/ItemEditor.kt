@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.border
@@ -51,9 +51,9 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = { discard = true }) { Icon(Icons.Outlined.Close, null); Text("Cancel / skip") }
-                TextButton(enabled = !busy, onClick = { save(bitmap, name, category, color, formality, season) }) { Text("Save piece") }
+                TextButton(enabled = !busy, onClick = { save(bitmap, name, category, color, formality, season) }) { Text("Save") }
             }
-            Heading("04 / Cutout & details", "CUTOUT LAB", "Clean edges. Clear details. Ready to wear.")
+            Heading("Edit clothes")
         }
         draft.warning?.let { warning -> item {
             Surface(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.medium) { Text(warning, Modifier.padding(16.dp), style = MaterialTheme.typography.bodyMedium) }
@@ -65,7 +65,7 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                 Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                     val currentRestore by rememberUpdatedState(restore)
                     val currentBrushSize by rememberUpdatedState(brushSize)
-                    Canvas(Modifier.clipToBounds().border(1.dp, MaterialTheme.colorScheme.outlineVariant).width(drawWidth).aspectRatio(ratio).testTag("cutoutCanvas")
+                    Canvas(Modifier.clip(ClosetShape).border(1.dp, MaterialTheme.colorScheme.outlineVariant, ClosetShape).width(drawWidth).aspectRatio(ratio).testTag("cutoutCanvas")
                         .pointerInput(brush, bitmap) {
                             if(!brush) return@pointerInput
                             awaitEachGesture {
@@ -95,9 +95,9 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                         // Revision is read during drawing so in-place brush edits invalidate the canvas.
                         @Suppress("UNUSED_VARIABLE") val redraw = revision
                         val tile = 12.dp.toPx()
-                        drawRect(Color(0xFFF5F7FF))
+                        drawRect(Color(0xFFFFF7FB))
                         for(y in 0..(size.height / tile).toInt()) for(x in 0..(size.width / tile).toInt()) {
-                            if((x + y) % 2 == 0) drawRect(Color(0xFFE0E7F8), Offset(x * tile, y * tile), androidx.compose.ui.geometry.Size(tile, tile))
+                            if((x + y) % 2 == 0) drawRect(Color(0xFFF0E3EE), Offset(x * tile, y * tile), androidx.compose.ui.geometry.Size(tile, tile))
                         }
                         drawImage(bitmap.asImageBitmap(), dstSize = IntSize(size.width.toInt(), size.height.toInt()))
                     }
@@ -122,15 +122,22 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                     Text("Draw on the image. Restore paints back the original photo. Turn Brush off to scroll over the image.", style = MaterialTheme.typography.bodySmall)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SectionLine("Item details", "Your collection")
+                SectionLine("Details", "")
                 OutlinedTextField(shape = ClosetShape, value = name, onValueChange = { name = it.take(80) }, label = { Text("Name (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Choice("Category", category, categories, onSelect = { category = it })
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Choice("Main color", color, colors, Modifier.weight(1f)) { color = it }
-                    Choice("Formality", formality, formalities, Modifier.weight(1f)) { formality = it }
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    if(maxWidth < 340.dp || androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Choice("Main color", color, colors) { color = it }
+                            Choice("Formality", formality, formalities) { formality = it }
+                        }
+                    } else Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Choice("Main color", color, colors, Modifier.weight(1f)) { color = it }
+                        Choice("Formality", formality, formalities, Modifier.weight(1f)) { formality = it }
+                    }
                 }
                 Choice("Season", season, seasons, onSelect = { season = it })
-                Button(shape = ClosetShape, onClick = { save(bitmap, name, category, color, formality, season) }, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Save to closet") }
+                Button(shape = ClosetShape, onClick = { save(bitmap, name, category, color, formality, season) }, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Save clothes") }
             }
         }
     }
