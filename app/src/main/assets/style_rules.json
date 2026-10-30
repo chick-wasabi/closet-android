@@ -1,9 +1,23 @@
 {
-  "version": 1,
+  "version": 2,
   "neutralColors": ["black", "white", "cream", "gray", "navy", "brown", "neutral"],
   "colorPairs": [["blue", "brown"], ["green", "cream"], ["pink", "gray"], ["red", "navy"], ["purple", "cream"], ["yellow", "blue"]],
-  "weights": {"color": 3, "formality": 4, "season": 5},
+  "hues": {"red":0,"orange":30,"yellow":60,"green":120,"blue":220,"purple":280,"pink":330},
+  "harmony": {"analogousDegrees":45,"complementaryTolerance":35},
+  "weights": {"color":3,"formality":4,"season":5,"patternClash":7,"incoherence":12,"recentWear":8,"preference":2},
+  "strongPatterns": ["striped","dotted","checked","printed"],
+  "incoherentSubcategories": [["joggers","formal shoes"],["shorts","formal shoes"],["joggers","shirt"],["shorts","shirt"]],
   "allowAdjacentFormality": true,
-  "optional": {"hatProbability": 0.4, "jacketProbability": 0.5},
-  "stackOrder": ["hat", "top", "jacket", "bottom", "shoes"]
+  "optional": {"hatProbability":0.4,"jacketProbability":0.5},
+  "jacketSeasons": ["winter","autumn","spring","all"],
+  "occasions": {
+    "Casual":{"formalities":["casual","smart"],"excludedSubcategories":["pajamas"],"required":["top","bottom","shoes"]},
+    "College/Work":{"formalities":["smart","casual"],"excludedSubcategories":["shorts","pajamas"],"required":["top","bottom","shoes"]},
+    "Date":{"formalities":["smart","formal","casual"],"excludedSubcategories":["joggers","pajamas"],"required":["top","bottom","shoes"]},
+    "Party":{"formalities":["smart","formal","casual"],"excludedSubcategories":["pajamas"],"required":["top","bottom","shoes"]},
+    "Gym/Home":{"formalities":["casual"],"excludedSubcategories":["formal shoes","shirt","trousers"],"required":["top","bottom","shoes"]},
+    "Sleep":{"formalities":["casual","smart","formal"],"excludedSubcategories":[],"required":["pajamas"]}
+  },
+  "explanations": {"color":"Balanced colors keep these pieces easy to wear together.","coherence":"Similar dress levels make this outfit feel consistent.","sleep":"An easy pajama set for winding down.","mixed":"A playful mix; swap a piece for a closer match."},
+  "stackOrder":["hat","top","jacket","bottom","shoes"]
 }

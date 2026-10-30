@@ -73,7 +73,7 @@ class ImageStore(private val context: Context) {
         val output = Bitmap.createBitmap(1000, 1600, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
         val slots = mapOf("hat" to RectF(240f, 20f, 760f, 230f), "top" to RectF(170f, 235f, 830f, 730f),
-            "jacket" to RectF(185f, 245f, 815f, 720f), "bottom" to RectF(240f, 740f, 760f, 1350f), "shoes" to RectF(220f, 1370f, 780f, 1580f))
+            "jacket" to RectF(185f, 245f, 815f, 720f), "bottom" to RectF(240f, 740f, 760f, 1350f), "shoes" to RectF(220f, 1370f, 780f, 1580f), "pajamas" to RectF(180f, 180f, 820f, 1430f))
         for (item in dev.closet.domain.OutfitEngine.ordered(items)) {
             val source = read(item.imagePath)
             val cropped = trim(source)
@@ -81,6 +81,9 @@ class ImageStore(private val context: Context) {
             val scale = minOf(slot.width() / cropped.width, slot.height() / cropped.height)
             val w = cropped.width * scale; val h = cropped.height * scale
             val dest = RectF(slot.centerX() - w / 2, slot.centerY() - h / 2, slot.centerX() + w / 2, slot.centerY() + h / 2)
+            val shadow = cropped.extractAlpha(Paint().apply { maskFilter = BlurMaskFilter(10f, BlurMaskFilter.Blur.NORMAL) }, IntArray(2))
+            canvas.drawBitmap(shadow, null, RectF(dest).apply { offset(0f, 7f) }, Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.argb(28,40,20,35) })
+            shadow.recycle()
             canvas.drawBitmap(cropped, null, dest, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
             if (cropped !== source) cropped.recycle()
             source.recycle()

@@ -49,4 +49,31 @@ class OutfitEngineTest {
         val a = piece("a", "top", "blue"); val b = piece("b", "bottom", "brown")
         assertEquals(engine.score(a, b), engine.score(b, a))
     }
+
+    @Test fun strongPatternsAndFormalSportswearClashesArePenalized() {
+        val shirt=piece("a","top").copy(subcategory="shirt",pattern="striped")
+        val pants=piece("b","bottom").copy(subcategory="joggers",pattern="checked")
+        assertTrue(engine.score(shirt,pants)<engine.score(shirt,pants.copy(subcategory="trousers",pattern="solid")))
+    }
+    @Test fun summerHasNoJacketsAndLockedPiecesSurviveShuffle() {
+        val lock=basics.first()
+        val looks=engine.options(basics+piece("t2","top")+piece("j","jacket"),"summer",locked=listOf(lock),jacket=1.0)
+        assertTrue(looks.all{look->look.any{it.id==lock.id}&&look.none{it.category=="jacket"}})
+    }
+    @Test fun sleepUsesPajamasAndNeedsNoShoes() {
+        val pajama=piece("p","pajamas")
+        assertEquals(listOf(pajama),engine.options(listOf(pajama),occasion="Sleep").single())
+    }
+    @Test fun wearRecencyAndLocalFeedbackChangeRanking() {
+        val a=basics.first();val b=basics[1]
+        val fresh=listOf(a,b);val worn=listOf(a.copy(lastWorn=1000),b)
+        assertTrue(engine.total(fresh,"all",now=2000)>engine.total(worn,"all",now=2000))
+        assertTrue(engine.total(fresh,"all",mapOf(OutfitEngine.pairKey(a.id,b.id) to 2))>engine.total(fresh,"all"))
+    }
+    @Test fun optionsAreUniqueAndBoundedByFive() {
+        val pool=basics+(1..8).map{piece("t$it","top")}
+        val options=engine.options(pool)
+        assertEquals(5,options.size);assertEquals(5,options.distinct().size)
+        assertTrue(engine.explain(options.first()).isNotBlank())
+    }
 }
