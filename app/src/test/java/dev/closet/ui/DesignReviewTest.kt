@@ -35,7 +35,7 @@ class DesignReviewTest {
             ClosetTheme(dark) {
               val density = androidx.compose.ui.platform.LocalDensity.current
               androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, fontScale)) {
-                Scaffold(bottomBar = { if(showNavigation) ClosetNavigation(page, true) {} }, floatingActionButton = { if(showNavigation && showAddAction && page == 0) AddPieceAction {} }) { insets ->
+                Scaffold(topBar = { if(showNavigation) SettingsActionBar(add=if(showAddAction && page==0)({})else null){} }, bottomBar = { if(showNavigation) ClosetNavigation(page, true) {} }) { insets ->
                     Box(Modifier.fillMaxSize().padding(insets)) { content() }
                 }
               }
@@ -76,21 +76,21 @@ class DesignReviewTest {
 
     @Test fun closetPopulatedDark() {
         val fixture = ReviewFixtures()
-        render("closet-populated-dark", dark = true, showAddAction = true, ready = { fixture.loaded.get() >= fixture.items.size }) { Wardrobe(fixture.items, {}, {}, {}) }
+        render("closet-populated-dark", dark = true, showAddAction = true, ready = { fixture.loaded.get() >= fixture.items.size }) { Wardrobe(fixture.items, {}, {}, {},onDeleteMany={}) }
         compose.onNodeWithText("Pink tee").assertIsDisplayed()
         singleLineTitle()
     }
 
     @Test fun closetPopulatedLight() {
         val fixture = ReviewFixtures()
-        render("closet-populated-light", showAddAction = true, ready = { fixture.loaded.get() >= fixture.items.size }) { Wardrobe(fixture.items, {}, {}, {}) }
+        render("closet-populated-light", showAddAction = true, ready = { fixture.loaded.get() >= fixture.items.size }) { Wardrobe(fixture.items, {}, {}, {},onDeleteMany={}) }
         singleLineTitle()
     }
 
     @Test fun studioLight() {
         val fixture = ReviewFixtures()
         val bitmap = dev.closet.imaging.ImageStore(ApplicationProvider.getApplicationContext()).read(fixture.outfitPath)
-        render("studio-light", page = 1) { OutfitBuilder(fixture.items, bitmap, fixture.items.take(3), false, { _, _ -> }, {}, {}, { _, _ -> }) }
+        render("studio-light", page = 1) { OutfitBuilder(fixture.items, bitmap, fixture.items.take(3), false, { _, _ -> }, {}, {}, { _, _ -> }, initialSeason="autumn", options=listOf(OutfitOption(fixture.items.take(3),bitmap,"Balanced colors keep these pieces easy to wear together."))) }
         singleLineTitle()
     }
 
@@ -142,4 +142,39 @@ class DesignReviewTest {
         singleLineTitle()
     }
 
+
+    @Test fun settingsLight() {
+        val vm=ViewModelProvider(compose.activity)[ClosetViewModel::class.java]
+        render("settings-light",showNavigation=false){SettingsScreen(vm){}}
+    }
+    @Test fun detailLight() {
+        val fixture=ReviewFixtures();val vm=ViewModelProvider(compose.activity)[ClosetViewModel::class.java]
+        render("detail-light",showNavigation=false){ItemDetail(fixture.items.first(),vm){}}
+    }
+    @Test
+    @Config(qualifiers="w320dp-h640dp-mdpi")
+    fun editorLargeTextControlsRemainReachable() {
+        val fixture=ReviewFixtures();val item=fixture.items.first()
+        val original=dev.closet.imaging.ImageStore(ApplicationProvider.getApplicationContext()).read(item.imagePath)
+        render("editor-small-large-font",fontScale=2f,showNavigation=false){ItemEditor(ItemDraft(item,original,original),false,{_,_,_,_,_,_->},{})}
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Save clothes"))
+        compose.onNodeWithText("Save clothes").assertIsDisplayed()
+    }
+    @Test
+    @Config(qualifiers="w320dp-h640dp-mdpi")
+    fun settingsLargeTextBackupIsReachable() {
+        val vm=ViewModelProvider(compose.activity)[ClosetViewModel::class.java]
+        render("settings-small-large-font",fontScale=2f,showNavigation=false){SettingsScreen(vm){}}
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Export backup"))
+        compose.onNodeWithText("Export backup").assertIsDisplayed()
+    }
+    @Test
+    @Config(qualifiers="w800dp-h360dp-mdpi")
+    fun editorLandscape() {
+        val fixture=ReviewFixtures();val item=fixture.items.first()
+        val original=dev.closet.imaging.ImageStore(ApplicationProvider.getApplicationContext()).read(item.imagePath)
+        render("editor-landscape",showNavigation=false){ItemEditor(ItemDraft(item,original,original),false,{_,_,_,_,_,_->},{})}
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Save clothes"))
+        compose.onNodeWithText("Save clothes").assertIsDisplayed()
+    }
 }

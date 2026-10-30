@@ -1,1 +1,6 @@
-<resources><style name="Theme.Closet" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:windowLightStatusBar">false</item><item name="android:colorAccent">#B13D68</item></style></resources>
+<resources><style name="Theme.Closet" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:windowLightStatusBar">false</item><item name="android:colorAccent">#B13D68</item></style><style name="Theme.Closet.Splash" parent="Theme.SplashScreen">
+<item name="windowSplashScreenBackground">@color/splash_background</item>
+<item name="windowSplashScreenAnimatedIcon">@drawable/splash_hanger</item>
+<item name="windowSplashScreenAnimationDuration">480</item>
+<item name="postSplashScreenTheme">@style/Theme.Closet</item>
+</style></resources>

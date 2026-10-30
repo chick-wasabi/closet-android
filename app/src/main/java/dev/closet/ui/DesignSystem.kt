@@ -40,7 +40,7 @@ val ClosetFont = FontFamily(
 )
 
 @Composable
-fun ClosetTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun ClosetTheme(dark: Boolean = isSystemInDarkTheme(), accent: String = "rose", content: @Composable () -> Unit) {
     val scheme = if (dark) darkColorScheme(
         primary = Color(0xFFFFB1CC), onPrimary = Color(0xFF5B1735), primaryContainer = Color(0xFF542D43), onPrimaryContainer = Color(0xFFFFD9E7),
         secondary = Color(0xFFD6BEFF), onSecondary = Color(0xFF38225C), secondaryContainer = Color(0xFF413352), onSecondaryContainer = Color(0xFFECDFFF),
@@ -57,7 +57,11 @@ fun ClosetTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -
         surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xFFFFF2F8), surfaceContainer = Color(0xFFF9EDF5), surfaceContainerHigh = Color(0xFFF4E6F1), surfaceContainerHighest = Color(0xFFEFDFED)
     )
     fun type(size: Int, height: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(fontFamily = ClosetFont, fontSize = size.sp, lineHeight = height.sp, fontWeight = weight)
-    MaterialTheme(colorScheme = scheme, shapes = Shapes(RoundedCornerShape(12.dp), RoundedCornerShape(16.dp), ClosetShape, RoundedCornerShape(28.dp), RoundedCornerShape(32.dp)),
+    val accentColor = when(accent) { "lilac" -> if(dark) Color(0xFFD1B6FA) else Color(0xFF7654A6); "teal" -> if(dark) Color(0xFF8DD8CF) else Color(0xFF226E68);else -> scheme.primary }
+    val accented = scheme.copy(primary=accentColor, onPrimary=if(dark) Color(0xFF231523) else Color.White,
+        primaryContainer=when(accent){"lilac"->scheme.secondaryContainer;"teal"->if(dark)Color(0xFF164C47)else Color(0xFFCFEEE9);else->scheme.primaryContainer},
+        onPrimaryContainer=when(accent){"lilac"->scheme.onSecondaryContainer;"teal"->if(dark)Color(0xFFB9EEE6)else Color(0xFF124C46);else->scheme.onPrimaryContainer})
+    MaterialTheme(colorScheme = accented, shapes = Shapes(RoundedCornerShape(12.dp), RoundedCornerShape(16.dp), ClosetShape, RoundedCornerShape(28.dp), RoundedCornerShape(32.dp)),
         typography = Typography(displayLarge = type(32, 40, FontWeight.Bold), headlineLarge = type(30, 38, FontWeight.Bold), headlineMedium = type(24, 32, FontWeight.Bold),
             titleLarge = type(22, 30, FontWeight.Bold), titleMedium = type(16, 22, FontWeight.SemiBold), bodyLarge = type(16, 24), bodyMedium = type(14, 21), bodySmall = type(12, 18),
             labelLarge = type(14, 20, FontWeight.Bold), labelMedium = type(12, 18, FontWeight.SemiBold), labelSmall = type(11, 16)), content = content)

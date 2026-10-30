@@ -1,0 +1,5 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+<group android:name="hanger" android:pivotX="54" android:pivotY="54">
+<path android:strokeColor="#B13D68" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="@android:color/transparent" android:pathData="M46,37C46,26 63,27 62,37C61,42 54,42 54,48L29,66Q25,71 31,73H77Q83,71 79,66L54,48"/>
+<path android:fillColor="#B13D68" android:pathData="M73,31C70,26 64,28 66,34C68,38 73,41 73,41C73,41 79,38 81,34C83,28 76,26 73,31Z"/>
+</group></vector>

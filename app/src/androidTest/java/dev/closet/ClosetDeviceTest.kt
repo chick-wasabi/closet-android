@@ -30,7 +30,7 @@ class ClosetDeviceTest {
         compose.onNodeWithText("Outfits", useUnmergedTree = true).performClick()
         compose.onNodeWithTag("screen-title").assertTextEquals("Outfits")
         compose.onNodeWithText("Shuffle").performClick()
-        compose.onNodeWithText("Add at least one top, bottom, and pair of shoes matching these filters.").assertIsDisplayed()
+        compose.onNodeWithText("Add a top, bottom and shoes matching these filters.").assertIsDisplayed()
         compose.onNodeWithText("Saved", useUnmergedTree = true).performClick()
         compose.onNodeWithTag("screen-title").assertTextEquals("Saved")
     }
@@ -48,7 +48,7 @@ class ClosetDeviceTest {
         }
         try {
             compose.waitUntil(15000) { vm.draft != null && !vm.busy }
-            compose.onNodeWithText("Name (optional)").performScrollTo().performTextInput("Test blue top")
+            compose.onNodeWithText("Name").performScrollTo().performTextInput("Test blue top")
             compose.onNodeWithText("Brush", substring = false).performScrollTo().performClick()
             compose.onNodeWithTag("cutoutCanvas").performScrollTo().performTouchInput {
                 down(center); moveTo(center + androidx.compose.ui.geometry.Offset(20f, 20f)); up()
