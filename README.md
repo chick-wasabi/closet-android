@@ -51,7 +51,8 @@ Uninstalling or clearing app data removes the wardrobe. Automatic backup is disa
 Kotlin, Jetpack Compose, Material 3, Room, and ML Kit. Minimum SDK 26; compile/target SDK 36. Use JDK 21, Android SDK 36, and Build Tools 35.0.0. The committed wrapper supplies checksum-verified Gradle 8.13.
 
 ```sh
-./gradlew testDebugUnitTest lintDebug
+./gradlew testDebugUnitTest
+./gradlew --max-workers=1 lintDebug
 python3 scripts/update_screenshots.py
 python3 scripts/update_screenshots.py --check
 # Restore the existing permanent signing configuration before packaging:
