@@ -60,7 +60,7 @@
 | API | A defined way for code to use a system or library. No paid web API is used. |
 | Manifest | Android’s declaration of the app’s screens, permissions, and providers. |
 | Cache | Temporary files Android can clear; used for camera captures and share copies. |
-| Backup | A separate copy for recovery. Closet disables automatic app backup and currently has no full wardrobe backup/restore feature. |
+| Backup | A separate copy for recovery. Closet disables automatic app backup; use Settings → Export backup / Restore backup for the complete editable wardrobe. |
 | Accessibility / semantics | Labels, readable scaling, and screen information that help assistive tools and users. |
 
 ## Interface and update safety
@@ -106,3 +106,34 @@
 | Lint / static analysis | Automated inspection for likely Android correctness, usability, or compatibility problems. |
 | Build / compile / package | Turn source code into executable instructions and combine them with resources into an APK. |
 | Release | A distributed version intended for users. An uploaded debug artifact is not a Play Store release. |
+
+## Photo suggestions, outfits, and recovery
+
+| Term | In plain words |
+| --- | --- |
+| Schema / exported schema | The database's layout, saved as a readable file so changes can be reviewed and tested. |
+| Migration / ALTER TABLE | A safe change to that layout, such as adding a brand field while preserving existing clothes. |
+| Transaction / rollback | A group of database changes that succeeds together or leaves the old records intact on failure. |
+| ML Kit Image Labeling | A model bundled in the APK that suggests general photo labels on the phone. It is not a specialist fashion classifier, so categories can be wrong. |
+| ML Kit Text Recognition / OCR | A bundled model that reads printed letters from a label photo. OCR means optical character recognition. Brand and size text remain editable. |
+| Heuristic / deterministic | A practical rule of thumb; deterministic means the same input produces the same guess. It cannot guarantee which way ambiguous clothing faces. |
+| Dominant color / quantized histogram | The most common opaque color, counted in groups of similar shades. Translucent edge pixels are ignored. |
+| Pattern statistics | Comparing nearby pixels to guess stripes, checks, dots, print, or solid fabric. Seams, shadows, and wrinkles can confuse the guess. |
+| Connected component / speck / hole | A group of touching foreground pixels, a small detached fragment, and a transparent gap inside a foreground shape. Cleanup keeps the largest group; turn it off for intentionally separate pieces. |
+| Alpha smoothing / brightness / contrast | Softening pixel edges, changing how light an image is, and changing the difference between light and dark. These edits cannot unfold clothing or remove wrinkles. |
+| Auto-crop / padding / normalization | Trimming empty surroundings, adding even space around the item, and making saved images a consistent maximum size. |
+| Batch / queue / review | Several selected photos processed one at a time, then checked before saving all of them. Unsaved batches are not guaranteed to survive an app restart. |
+| Subcategory | A more specific clothing type, such as jeans within bottoms. |
+| Monochrome / analogous / complementary | The same color, neighboring color-wheel shades, and shades opposite each other. The style-rules file defines scoring. |
+| Occasion / layering / pattern clash | A context for an outfit, wearing a jacket over a top, and competing strong patterns. |
+| Pair preference / recency penalty | Local feedback about two pieces together, and lowering the score of recently worn clothes. Nothing is uploaded or trained online. |
+| Carousel / locked slot | A horizontally swipeable set of outfit options, and a piece kept unchanged when shuffling. A small closet may offer fewer than five unique options. |
+| Wear log / hemisphere | Dates outfits were worn, and which half of the world determines automatic seasons. Tropical mode leaves season unrestricted. |
+| SharedPreferences | Android's private local storage for small settings such as theme and accent color. |
+| ZIP / portable logical database snapshot | A single backup file holding photos, settings, and readable database records. Restore rebuilds the Room records with new local file paths. It is not a raw SQLite file or an APK. |
+| ZIP path traversal / decompression limit | A malicious archive trying to write outside its folder, and a size limit to avoid an archive exhausting device storage. Restore rejects unknown entries before changing the live closet. |
+| System file picker / Storage Access Framework | Android's chooser for granting access to the exact backup file or destination you select, without broad storage access. |
+| androidx.core:core-splashscreen | Android's compatible startup-screen library. Closet uses a short hanger animation and fade, without deliberately delaying startup. |
+| Adaptive launcher icon / foreground / background / monochrome layer | Separate icon artwork Android can crop into different launcher shapes; the single-color layer supports themed home-screen icons. |
+| Animated vector / interpolator | A drawing animated by a small property change, and the timing curve controlling its movement. |
+| Blur mask / soft shadow | A softened silhouette drawn behind a clothing image to give the stack a gentle sense of depth. |

@@ -15,3 +15,14 @@ Refresh public screenshots with `python3 scripts/update_screenshots.py`. Its `--
 Packaging debug and release APKs requires the existing permanent signing configuration. `scripts/signing.py verify-apks` verifies both against the certificate pin. Do not remove signing checks to make a build pass.
 
 GitHub Actions uploads APKs separately from validation reports and screenshots. It does not publish a Play Store release.
+
+## 1.3 data and photo checks
+
+- `MigrationBackupTest` creates a database from the committed version-1 schema, inserts old clothes/outfits, opens it with the production 1→2 migration, and checks retained values/defaults. Room validates the resulting layout. No destructive fallback is configured.
+- Backup tests export and restore real PNGs plus item details, favorites, wear history, preferences and settings. Malformed and path-traversal ZIPs must leave live records intact.
+- `GarmentAnalysisTest` checks opaque-pixel color mapping, confidence fallback, pattern statistics, upright/upside-down/sideways masks, ambiguous shapes and shoe geometry.
+- `PhotoProcessingTest` checks rotation/mirroring coordinates and mask cleanup/aligned geometry.
+- Outfit tests check patterns, formality clashes, summer layering, locks, pajamas, repeat penalties, local preferences and unique option counts.
+- Render checks include Settings, item detail, narrow/large-font editor and Settings, plus landscape editing. Production screen functions generate documentation images; fixture clothes remain test-only.
+
+On a phone, install as an update, confirm the existing closet is present, export a backup, and restore that ZIP before adding many new items. Exercise camera/gallery, tag scanning, model-unavailable fallback, rotation plus restore brush, five-option swiping, locks, wear logging, gallery export, and the Android document picker. Host tests cannot establish camera/OCR/segmentation quality or an APK upgrade on a physical device.
