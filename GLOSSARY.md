@@ -63,6 +63,17 @@
 | Backup | A separate copy for recovery. Closet disables automatic app backup and currently has no full wardrobe backup/restore feature. |
 | Accessibility / semantics | Labels, readable scaling, and screen information that help assistive tools and users. |
 
+## The lookbook design
+
+| Term | In plain words |
+| --- | --- |
+| Condensed type / masthead | Narrow display letters and a large page heading, used to give Closet its fashion-poster character. |
+| Contact sheet / registration grid | A neatly arranged set of image frames and fine guide lines behind cutouts. These are visual treatments, not extra wardrobe data. |
+| Design token / color role | A shared size, font, or color choice used consistently across screens. A color role identifies what the color does, such as text or a selected button. |
+| Robolectric / native graphics | An Android simulation running on the development computer, with Android's drawing code used for realistic component rendering. It is not a physical phone. |
+| Roborazzi / render check | A tool that captures Android UI images for review. Closet records screenshots; it does not yet compare them against approved reference images. |
+| Fixture | Synthetic test data, such as the drawn shirt in review screenshots. It is not shipped as a real wardrobe item. |
+
 ## Building and testing
 
 | Term | In plain words |

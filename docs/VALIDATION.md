@@ -5,7 +5,7 @@
 - Official Gradle 8.13 wrapper JAR SHA-256 checked against Gradle’s published digest. The distribution checksum is pinned in wrapper properties.
 - JDK 21 and Android SDK 36 installed from official sources with artifact verification preserved.
 - `./gradlew --no-daemon --max-workers=2 testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest` succeeded.
-- **9 JVM tests passed; 0 failed, 0 skipped.** Covers required pieces, strict filters, matching, order, optional policy probabilities, and invalid rule rejection.
+- **17 host tests passed: 9 rule tests and 8 Compose render checks; 0 failed, 0 skipped.** Covers required pieces, strict filters, matching, order, optional policy probabilities, and invalid rule rejection.
 - Android lint: **0 errors**. Remaining warnings concern newer dependency versions, kapt-to-KSP migration, and an optional bitmap convenience extension.
 - Debug application APK and the Android device-test APK compiled successfully.
 - The merged application manifest has **no Internet or network-state permission**. The only Android runtime permission is write-to-shared-storage, limited to Android API 28 and below. App and device-transfer backup exclusions are declared.
@@ -48,3 +48,9 @@ After the CI correction, `./gradlew --no-daemon --max-workers=2 clean testDebugU
 The screenshot of run #4 confirmed `sdkmanager: command not found` (exit 127). The first correction incorrectly assumed the SDK manager was on the runner's PATH; the local absolute-path check did not establish that. The final workflow explicitly provisions the SDK through the setup action, with supported package inputs instead of its obsolete defaults. This removes reliance on runner PATH or preinstalled SDK state.
 
 Validation of the final correction executed the actual `setup-android@v3` bundled JavaScript action with the workflow inputs and a completely empty SDK directory. The action downloaded command-line tools, accepted licenses, installed all three supported packages, and exited 0. Verified `android.jar`, `aapt2`, and `adb` exist and the action registered the SDK manager directory in `GITHUB_PATH`. Then the existing Gradle test/lint/APK command passed using that newly provisioned SDK, with the original local.properties restored afterward. Workflow lint passed. This verifies local SDK provisioning and build integration, not the remote Actions result.
+
+## Closet 1.1 visual redesign
+
+Replaced the warm ivory/olive, serif, rounded-card UI with a cobalt/ink/cool-white fashion lookbook. Updated the closet, studio, saved looks, editor controls, navigation, and launcher icon. Wardrobe records, image files, matching rules, and database schema are unchanged. Version code 2 / version name 1.1.0.
+
+`testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest` passed after the redesign. Nine rule tests and eight host-side render checks passed; lint had no errors. The eight renders cover empty light closet, narrow phone, 1.5× text, landscape, populated dark closet with loaded test images, studio, dark saved screen, and editor. Scroll assertions verified the add action is reachable in narrow/large-text/landscape layouts. Screenshots were manually inspected; see [design previews](design/). These are not physical-phone tests or automated golden-image comparisons. Device-test APK compilation is verified; device instrumentation was not rerun on the previously failing emulator. The new GitHub Actions result remains unverified until remote log access is available.
