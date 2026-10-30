@@ -28,11 +28,11 @@ class ClosetDeviceTest {
         // Close the dialog with Back, then verify both secondary screens.
         androidx.test.espresso.Espresso.pressBack()
         compose.onNodeWithText("Style", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("The outfit studio").assertIsDisplayed()
+        compose.onNodeWithText("STUDIO").assertIsDisplayed()
         compose.onNodeWithText("Shuffle").performClick()
         compose.onNodeWithText("Add at least one top, bottom, and pair of shoes matching these filters.").assertIsDisplayed()
         compose.onNodeWithText("Saved", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("On repeat").assertIsDisplayed()
+        compose.onNodeWithText("LOOKBOOK").assertIsDisplayed()
     }
 
     @Test fun cutoutBrushAndMetadataSaveToCloset() {

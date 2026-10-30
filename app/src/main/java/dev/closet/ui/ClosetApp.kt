@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -25,9 +24,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,10 +36,7 @@ import java.io.File
 
 @Composable
 fun ClosetApp(vm: ClosetViewModel) {
-    val dark = isSystemInDarkTheme()
-    val scheme = if (dark) darkColorScheme(primary = Color(0xFFB9CAA5), secondary = Color(0xFFD8C6AC), background = Color(0xFF171B16), surface = Color(0xFF20251F))
-    else lightColorScheme(primary = Color(0xFF526440), secondary = Color(0xFF806B50), background = Color(0xFFF8F6EF), surface = Color(0xFFF8F6EF), surfaceVariant = Color(0xFFEAEBDD))
-    MaterialTheme(colorScheme = scheme, shapes = Shapes(medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(28.dp))) {
+    ClosetTheme {
         Surface(Modifier.fillMaxSize()) {
             val snack = remember { SnackbarHostState() }
             val items by vm.items.collectAsStateWithLifecycle()
@@ -61,21 +57,17 @@ fun ClosetApp(vm: ClosetViewModel) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snack) },
                 bottomBar = {
-                    if (vm.draft == null) NavigationBar {
-                        listOf("Closet" to Icons.Outlined.Checkroom, "Style" to Icons.Outlined.AutoAwesome, "Saved" to Icons.Outlined.CollectionsBookmark).forEachIndexed { i, (label, icon) ->
-                            NavigationBarItem(enabled = !vm.busy, selected = page == i, onClick = { page = i }, icon = { Icon(icon, label) }, label = { Text(label) })
-                        }
-                    }
+                    if (vm.draft == null) ClosetNavigation(page, !vm.busy) { page = it }
                 },
                 floatingActionButton = {
-                    if (page == 0 && vm.draft == null && !vm.busy) ExtendedFloatingActionButton(onClick = { add = true }, icon = { Icon(Icons.Outlined.Add, null) }, text = { Text("Add piece") })
+                    if (page == 0 && vm.draft == null && !vm.busy) AddPieceAction { add = true }
                 }
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     val draft = vm.draft
                     if (draft != null) ItemEditor(draft, vm.busy, vm::saveDraft, vm::skipDraft)
                     else when (page) {
-                        0 -> Wardrobe(items, vm::edit, { add = true })
+                        0 -> Wardrobe(items, vm::edit, { add = true }, vm::delete)
                         1 -> Builder(vm, items)
                         2 -> Saved(outfits, vm)
                     }
@@ -107,10 +99,20 @@ fun ClosetApp(vm: ClosetViewModel) {
 }
 
 @Composable
-fun Heading(kicker: String, title: String, subtitle: String) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(kicker.uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-        Text(title, style = MaterialTheme.typography.headlineLarge, fontFamily = FontFamily.Serif)
+fun Heading(kicker: String, title: String, subtitle: String, horizontalPadding: androidx.compose.ui.unit.Dp = 22.dp) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = horizontalPadding, vertical = 22.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            MicroLabel(kicker, Modifier.weight(1f), MaterialTheme.colorScheme.primary)
+            Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary))
+        }
+        Spacer(Modifier.height(10.dp))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+            val display = title in listOf("CLOSET", "LOOKBOOK", "STUDIO")
+            val size = minOf(76f, maxWidth.value / (title.length * .55f) / scale)
+            Text(title, style = if(display) MaterialTheme.typography.displayLarge.copy(fontSize = size.sp, lineHeight = size.sp) else MaterialTheme.typography.headlineLarge)
+        }
+        Spacer(Modifier.height(8.dp))
         Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -119,7 +121,7 @@ fun Heading(kicker: String, title: String, subtitle: String) {
 fun Choice(label: String, value: String, options: List<String>, modifier: Modifier = Modifier, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier) {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        OutlinedButton(onClick = { expanded = true }, shape = ClosetShape, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Column(Modifier.weight(1f)) { Text(label, style = MaterialTheme.typography.labelSmall); Text(value.replaceFirstChar { it.uppercase() }) }
             Icon(Icons.Outlined.ExpandMore, null)
         }
@@ -130,27 +132,46 @@ fun Choice(label: String, value: String, options: List<String>, modifier: Modifi
 }
 
 @Composable
-fun Wardrobe(items: List<ClothingItem>, edit: (ClothingItem) -> Unit, add: () -> Unit) {
+fun Wardrobe(items: List<ClothingItem>, edit: (ClothingItem) -> Unit, add: () -> Unit, delete: (ClothingItem) -> Unit) {
     var search by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf("all") }
     val filtered = items.filter { (category == "all" || it.category == category) && listOf(it.name, it.category, it.color, it.formality, it.season).any { text -> text.contains(search, true) } }
     var selected by remember { mutableStateOf<ClothingItem?>(null) }
-    val vm: ClosetViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-    Column {
-        Heading("Your everyday archive", "Closet", "${items.size} pieces. A little less “what to wear?”.")
-        OutlinedTextField(value = search, onValueChange = { search = it }, placeholder = { Text("Find a piece, color, or season") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), shape = RoundedCornerShape(50))
-        LazyRow(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(listOf("all") + categories) { c -> FilterChip(selected = category == c, onClick = { category = c }, label = { Text(c.replaceFirstChar { it.uppercase() }) }) }
+    LazyVerticalGrid(modifier = Modifier.testTag("wardrobe-grid"), columns = GridCells.Adaptive(155.dp), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, bottom = 100.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item(span = { GridItemSpan(maxLineSpan) }) { Heading("Your collection / ${items.size.toString().padStart(3, '0')} pieces", "CLOSET", "Good clothes. Better combinations.", 0.dp) }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            OutlinedTextField(value = search, onValueChange = { search = it }, placeholder = { Text("Search your wardrobe") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), shape = ClosetShape)
         }
-        if (filtered.isEmpty()) EmptyState(Icons.Outlined.Checkroom, if(items.isEmpty()) "Make room for your favorites" else "No pieces found", if(items.isEmpty()) "Your wardrobe starts with one photo. Everything stays on this phone." else "Try a different search or category.", if(items.isEmpty()) "Add your first piece" else null, add)
-        else LazyVerticalGrid(columns = GridCells.Adaptive(155.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 100.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(filtered, key = { it.id }) { item ->
-                Card(onClick = { selected = item }, shape = RoundedCornerShape(24.dp)) {
-                    AsyncImage(File(item.imagePath), item.name.ifBlank { item.category }, Modifier.fillMaxWidth().aspectRatio(.88f).padding(12.dp), contentScale = ContentScale.Fit)
-                    Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 16.dp)) {
-                        Text(item.name.ifBlank { item.category.replaceFirstChar { it.uppercase() } }, maxLines = 2, fontWeight = FontWeight.Medium)
-                        Text("${item.color} · ${item.category}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            LazyRow(contentPadding = PaddingValues(0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(listOf("all") + categories) { c -> FilterChip(selected = category == c, onClick = { category = c }, shape = ClosetShape, label = { Text(c.replaceFirstChar { it.uppercase() }) }) }
+            }
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                SectionLine(if(category == "all") "All pieces" else category, "${filtered.size.toString().padStart(2, '0')} in view")
+            }
+        }
+        if (filtered.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+            Column {
+                if(items.isEmpty()) WardrobePoster()
+                EmptyState(Icons.Outlined.Checkroom, if(items.isEmpty()) "Start with your favorites." else "Nothing in this view.", if(items.isEmpty()) "One photo, one piece. Build a collection that is entirely yours." else "Try another search or category.", if(items.isEmpty()) "Add your first piece" else null, add)
+            }
+        }
+        itemsIndexed(filtered, key = { _, item -> item.id }) { index, item ->
+            Surface(onClick = { selected = item }, modifier = Modifier.fillMaxWidth(), shape = ClosetShape,
+                color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Column {
+                    PhotoStage(Modifier.fillMaxWidth().aspectRatio(.82f)) {
+                        MicroLabel((index + 1).toString().padStart(2, '0'), Modifier.align(Alignment.TopStart).padding(10.dp))
+                        AsyncImage(File(item.imagePath), item.name.ifBlank { item.category }, Modifier.fillMaxSize().padding(16.dp), contentScale = ContentScale.Fit)
+                    }
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        MicroLabel(item.category, color = MaterialTheme.colorScheme.primary)
+                        Text(item.name.ifBlank { "${item.color.replaceFirstChar { it.uppercase() }} ${item.category}" }, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                        Text("${item.formality} / ${item.season}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -163,18 +184,20 @@ fun Wardrobe(items: List<ClothingItem>, edit: (ClothingItem) -> Unit, add: () ->
                 if(confirmDelete) Text("The original and cutout will be deleted. Saved outfit images are kept.")
                 else Column { AsyncImage(File(item.imagePath), item.category, Modifier.fillMaxWidth().height(220.dp), contentScale = ContentScale.Fit); Text("${item.color} · ${item.formality} · ${item.season}") }
             },
-            confirmButton = { TextButton(onClick = { if(confirmDelete) vm.delete(item) else edit(item); selected = null }) { Text(if(confirmDelete) "Delete" else "Edit / fix cutout") } },
+            confirmButton = { TextButton(onClick = { if(confirmDelete) delete(item) else edit(item); selected = null }) { Text(if(confirmDelete) "Delete" else "Edit / fix cutout") } },
             dismissButton = { TextButton(onClick = { if(confirmDelete) selected = null else confirmDelete = true }) { Text(if(confirmDelete) "Cancel" else "Delete piece") } })
     }
 }
 
 @Composable
 fun EmptyState(icon: ImageVector, title: String, description: String, action: String? = null, onAction: () -> Unit = {}) {
-    Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surfaceVariant) { Icon(icon, null, Modifier.padding(24.dp).size(40.dp)) }
-        Text(title, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
-        Text(description, style = MaterialTheme.typography.bodyMedium)
-        if(action != null) Button(onClick = onAction) { Text(action) }
+    Column(Modifier.fillMaxWidth().padding(vertical = 24.dp, horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Icon(icon, null, Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
+        Text(title, style = MaterialTheme.typography.headlineMedium)
+        Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if(action != null) Button(shape = ClosetShape, onClick = onAction, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text(action); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.NorthEast, null)
+        }
     }
 }
 
@@ -184,7 +207,7 @@ fun Builder(vm: ClosetViewModel, items: List<ClothingItem>) {
     var formality by rememberSaveable { mutableStateOf("any") }
     var swap by remember { mutableStateOf<String?>(null) }
     LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        item { Heading("Good together", "The outfit studio", "Your pieces. Fresh combinations. Zero scrolling for inspiration.") }
+        item { Heading("02 / The styling room", "STUDIO", "Put your wardrobe to work.") }
         item {
             Row(Modifier.widthIn(max = 600.dp).padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Choice("Season", season, seasons, Modifier.weight(1f)) { season = it }
@@ -192,21 +215,34 @@ fun Builder(vm: ClosetViewModel, items: List<ClothingItem>) {
             }
         }
         item {
-            Card(Modifier.padding(20.dp).widthIn(max = 450.dp).fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                val bitmap = vm.preview
-                if(bitmap == null) EmptyState(Icons.Outlined.AutoAwesome, "Meet your next outfit", "Add a top, bottom, and shoes, then shuffle. Hats and jackets join when they fit.")
-                else Image(bitmap.asImageBitmap(), "Outfit: " + vm.current.joinToString { it.name.ifBlank { it.category } }, Modifier.fillMaxWidth().aspectRatio(.625f).padding(16.dp))
+            Column(Modifier.padding(20.dp).widthIn(max = 450.dp).fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onBackground).padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MicroLabel("OUTFIT / ${vm.current.size.toString().padStart(2, '0')} PIECES", color = MaterialTheme.colorScheme.background)
+                    MicroLabel("PREVIEW", color = MaterialTheme.colorScheme.background)
+                }
+                PhotoStage(Modifier.fillMaxWidth()) {
+                    val bitmap = vm.preview
+                    if(bitmap == null) Column {
+                        OutfitGuide()
+                        EmptyState(Icons.Outlined.Tune, "Build a look.", "A top, a bottom, a pair of shoes. Start there; add layers when they fit.")
+                    }
+                    else Image(bitmap.asImageBitmap(), "Outfit: " + vm.current.joinToString { it.name.ifBlank { it.category } }, Modifier.fillMaxWidth().aspectRatio(.625f).padding(20.dp))
+                }
+                Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MicroLabel("Hat / Top / Bottom / Shoes")
+                }
             }
         }
+
         item {
             Row(Modifier.padding(horizontal = 20.dp).widthIn(max = 600.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { vm.shuffle(season, formality) }, modifier = Modifier.weight(1f)) { Icon(Icons.Outlined.Shuffle, null); Spacer(Modifier.width(6.dp)); Text("Shuffle") }
-                OutlinedButton(onClick = { vm.saveOutfit() }, enabled = vm.preview != null) { Text("Save") }
+                Button(shape = ClosetShape, onClick = { vm.shuffle(season, formality) }, modifier = Modifier.weight(1f)) { Icon(Icons.Outlined.Shuffle, null); Spacer(Modifier.width(6.dp)); Text("Shuffle") }
+                OutlinedButton(shape = ClosetShape, onClick = { vm.saveOutfit() }, enabled = vm.preview != null) { Text("Save") }
                 IconButton(onClick = { vm.saveOutfit(!vm.favorite) }, enabled = vm.preview != null) { Icon(if(vm.favorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Favorite outfit") }
             }
         }
         if(vm.preview != null) {
-            item { Text("MAKE IT YOURS", Modifier.fillMaxWidth().padding(start = 24.dp, top = 28.dp, bottom = 8.dp), style = MaterialTheme.typography.labelMedium) }
+            item { SectionLine("Make it yours", "Swap a piece", Modifier.padding(horizontal = 24.dp)) }
             items(dev.closet.domain.OutfitEngine.stack) { category ->
                 val piece = vm.current.firstOrNull { it.category == category }
                 ListItem(headlineContent = { Text(piece?.name?.ifBlank { category } ?: "Add $category") }, supportingContent = { Text(piece?.let { "${it.color} · ${it.formality}" } ?: "Optional layer") },
@@ -245,18 +281,32 @@ fun Saved(outfits: List<SavedOutfit>, vm: ClosetViewModel) {
             pendingExport = outfit; permission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         } else vm.export(outfit)
     }
-    Column {
-        Heading("Keep the good ones", "On repeat", "Finished looks, ready when you are.")
-        FilterChip(selected = favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("Favorites only") }, modifier = Modifier.padding(start = 20.dp, bottom = 12.dp))
-        val shown = outfits.filter { !favoritesOnly || it.favorite }
-        if(shown.isEmpty()) EmptyState(Icons.Outlined.CollectionsBookmark, "A space for great outfits", "Save a look from the studio and it will be waiting here.")
-        LazyVerticalGrid(columns = GridCells.Adaptive(160.dp), contentPadding = PaddingValues(20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(shown, key = { it.id }) { outfit ->
-                Card(onClick = { selected = outfit }) {
-                    AsyncImage(File(outfit.imagePath), outfit.name, Modifier.fillMaxWidth().aspectRatio(.625f).padding(12.dp), contentScale = ContentScale.Fit)
+    val shown = outfits.filter { !favoritesOnly || it.favorite }
+    LazyVerticalGrid(columns = GridCells.Adaptive(155.dp), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, bottom = 28.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item(span = { GridItemSpan(maxLineSpan) }) { Heading("03 / Saved outfits", "LOOKBOOK", "Your best combinations. Worth keeping.", 0.dp) }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                FilterChip(selected = favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, shape = ClosetShape, label = { Text("Favorites only") }, leadingIcon = { Icon(Icons.Outlined.FavoriteBorder, null, Modifier.size(16.dp)) })
+                MicroLabel("${shown.size.toString().padStart(2, '0')} looks")
+            }
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) }
+        if(shown.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+            Column {
+                WardrobePoster(saved = true)
+                EmptyState(Icons.Outlined.Bookmarks, "A look worth repeating.", "Save a combination in the studio. Your favorites live here.")
+            }
+        }
+        itemsIndexed(shown, key = { _, outfit -> outfit.id }) { index, outfit ->
+            Surface(shape = ClosetShape, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Column {
+                    PhotoStage(Modifier.fillMaxWidth().aspectRatio(.625f).clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = "Open ${outfit.name}") { selected = outfit }) {
+                        MicroLabel("LOOK ${(index + 1).toString().padStart(2, '0')}", Modifier.padding(10.dp))
+                        AsyncImage(File(outfit.imagePath), outfit.name, Modifier.fillMaxSize().padding(16.dp), contentScale = ContentScale.Fit)
+                    }
                     Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(outfit.name, Modifier.weight(1f), maxLines = 1)
-                        IconButton(onClick = { vm.toggleFavorite(outfit) }) { Icon(if(outfit.favorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Toggle favorite") }
+                        Text(outfit.name, Modifier.weight(1f), maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
+                        IconButton(onClick = { vm.toggleFavorite(outfit) }) { Icon(if(outfit.favorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Toggle favorite", tint = MaterialTheme.colorScheme.primary) }
                     }
                 }
             }

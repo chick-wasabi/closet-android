@@ -17,8 +17,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -51,7 +53,7 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                 TextButton(onClick = { discard = true }) { Icon(Icons.Outlined.Close, null); Text("Cancel / skip") }
                 TextButton(enabled = !busy, onClick = { save(bitmap, name, category, color, formality, season) }) { Text("Save piece") }
             }
-            Heading("One piece at a time", if(draft.item == null) "Make it yours" else "Refine this piece", "Check the cutout, then give it a few details.")
+            Heading("04 / Cutout & details", "CUTOUT LAB", "Clean edges. Clear details. Ready to wear.")
         }
         draft.warning?.let { warning -> item {
             Surface(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.medium) { Text(warning, Modifier.padding(16.dp), style = MaterialTheme.typography.bodyMedium) }
@@ -63,7 +65,7 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                 Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                     val currentRestore by rememberUpdatedState(restore)
                     val currentBrushSize by rememberUpdatedState(brushSize)
-                    Canvas(Modifier.width(drawWidth).aspectRatio(ratio).testTag("cutoutCanvas")
+                    Canvas(Modifier.clipToBounds().border(1.dp, MaterialTheme.colorScheme.outlineVariant).width(drawWidth).aspectRatio(ratio).testTag("cutoutCanvas")
                         .pointerInput(brush, bitmap) {
                             if(!brush) return@pointerInput
                             awaitEachGesture {
@@ -93,9 +95,9 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
                         // Revision is read during drawing so in-place brush edits invalidate the canvas.
                         @Suppress("UNUSED_VARIABLE") val redraw = revision
                         val tile = 12.dp.toPx()
-                        drawRect(Color(0xFFF6F5F1))
+                        drawRect(Color(0xFFF5F7FF))
                         for(y in 0..(size.height / tile).toInt()) for(x in 0..(size.width / tile).toInt()) {
-                            if((x + y) % 2 == 0) drawRect(Color(0xFFDEDED7), Offset(x * tile, y * tile), androidx.compose.ui.geometry.Size(tile, tile))
+                            if((x + y) % 2 == 0) drawRect(Color(0xFFE0E7F8), Offset(x * tile, y * tile), androidx.compose.ui.geometry.Size(tile, tile))
                         }
                         drawImage(bitmap.asImageBitmap(), dstSize = IntSize(size.width.toInt(), size.height.toInt()))
                     }
@@ -104,29 +106,31 @@ fun ItemEditor(draft: ItemDraft, busy: Boolean, save: (Bitmap, String, String, S
         }
         item {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(brush, onClick = { brush = !brush }, label = { Text("Brush") }, leadingIcon = { Icon(Icons.Outlined.Brush, null) })
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(brush, shape = ClosetShape, onClick = { brush = !brush }, label = { Text("Brush") }, leadingIcon = { Icon(Icons.Outlined.Brush, null) })
                     TextButton(enabled = history.isNotEmpty(), onClick = { bitmap = history.removeAt(history.lastIndex); revision++ }) { Text("Undo") }
                     TextButton(onClick = { checkpoint(); bitmap = draft.original.copy(Bitmap.Config.ARGB_8888, true); revision++ }) { Text("Keep original") }
                 }
                 if(brush) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(!restore, onClick = { restore = false }, label = { Text("Erase") })
-                        FilterChip(restore, onClick = { restore = true }, label = { Text("Restore") })
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(!restore, shape = ClosetShape, onClick = { restore = false }, label = { Text("Erase") })
+                        FilterChip(restore, shape = ClosetShape, onClick = { restore = true }, label = { Text("Restore") })
                         TextButton(onClick = { checkpoint(); bitmap = draft.cutout.copy(Bitmap.Config.ARGB_8888, true); revision++ }) { Text("Reset cutout") }
                     }
                     Text("Brush size · ${brushSize.toInt()}", style = MaterialTheme.typography.labelMedium)
                     Slider(value = brushSize, onValueChange = { brushSize = it }, valueRange = 4f..90f)
                     Text("Draw on the image. Restore paints back the original photo. Turn Brush off to scroll over the image.", style = MaterialTheme.typography.bodySmall)
                 }
-                OutlinedTextField(value = name, onValueChange = { name = it.take(80) }, label = { Text("Name (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                SectionLine("Item details", "Your collection")
+                OutlinedTextField(shape = ClosetShape, value = name, onValueChange = { name = it.take(80) }, label = { Text("Name (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Choice("Category", category, categories, onSelect = { category = it })
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Choice("Main color", color, colors, Modifier.weight(1f)) { color = it }
                     Choice("Formality", formality, formalities, Modifier.weight(1f)) { formality = it }
                 }
                 Choice("Season", season, seasons, onSelect = { season = it })
-                Button(onClick = { save(bitmap, name, category, color, formality, season) }, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Save to closet") }
+                Button(shape = ClosetShape, onClick = { save(bitmap, name, category, color, formality, season) }, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Save to closet") }
             }
         }
     }
